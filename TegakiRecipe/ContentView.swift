@@ -11,8 +11,11 @@ import SwiftUI
 struct ContentView: View {
     @State var selectedPhotos: [PhotosPickerItem] = []
     @State var images = [UIImage]()
+    @State var response = "Test"
+    @State var responseString = "Nothing"
     var body: some View {
         VStack {
+            Text(response)
             ScrollView(.horizontal){
                 LazyHGrid(rows: [GridItem(.fixed(300))]){
                     ForEach(0..<images.count, id: \.self){
@@ -62,9 +65,23 @@ struct ContentView: View {
             }
         }
     }
-    func uploadPhotos(_ items: [PhotosPickerItem]) async{
-        
+    func uploadPhotos(_ items: [PhotosPickerItem]) async {
+        guard let url = URL(string: "http://127.0.0.1:8000/") else { return }
+
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let responseString = String(data: data, encoding: .utf8) ?? ""
+
+            await MainActor.run {
+                response = responseString
+            }
+        } catch {
+            await MainActor.run {
+                response = "request failed"
+            }
+        }
     }
+
 }
 
 
